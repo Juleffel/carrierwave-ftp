@@ -107,12 +107,17 @@ module CarrierWave
 
         def store(file)
           connection do |ftp|
-            p "ftp.mkdir_p(#{ftp_dirname})"
-            ftp.mkdir_p(ftp_dirname)
-            p "ftp.chdir(#{ftp_dirname})"
-            ftp.chdir(ftp_dirname)
-            p "ftp.put(#{file.path}, #{filename})"
-            ftp.put(file.path, filename)
+            if @uploader.ftp_auto_mkdir
+              p "ftp.put(#{file.path}, #{ftp_path})"
+              ftp.put(file.path, ftp_path)
+            else
+              p "ftp.mkdir_p(#{ftp_dirname})"
+              ftp.mkdir_p(ftp_dirname)
+              p "ftp.chdir(#{ftp_dirname})"
+              ftp.chdir(ftp_dirname)
+              p "ftp.put(#{file.path}, #{filename})"
+              ftp.put(file.path, filename)
+            end
             chmod(ftp) if @uploader.ftp_chmod
           end
         end
@@ -135,9 +140,15 @@ module CarrierWave
           temp_file = Tempfile.new(filename)
           temp_file.binmode
           connection do |ftp|
-            ftp.chdir(ftp_dirname)
-            ftp.get(filename, nil) do |data|
-              temp_file.write(data)
+            if @uploader.ftp_auto_mkdir
+              ftp.get(ftp_path, nil) do |data|
+                temp_file.write(data)
+              end
+            else
+              ftp.chdir(ftp_dirname)
+              ftp.get(filename, nil) do |data|
+                temp_file.write(data)
+              end
             end
           end
           temp_file.rewind
@@ -148,8 +159,12 @@ module CarrierWave
           size = nil
 
           connection do |ftp|
-            ftp.chdir(ftp_dirname)
-            size = ftp.size(filename)
+            if @uploader.ftp_auto_mkdir
+              size = ftp.size(ftp_path)
+            else
+              ftp.chdir(ftp_dirname)
+              size = ftp.size(filename)
+            end
           end
 
           size
@@ -174,8 +189,12 @@ module CarrierWave
 
         def delete
           connection do |ftp|
-            ftp.chdir(ftp_dirname)
-            ftp.delete(filename)
+            if @uploader.ftp_auto_mkdir
+              ftp.delete(ftp_path)
+            else
+              ftp.chdir(ftp_dirname)
+              ftp.delete(filename)
+            end
           end
         rescue StandardError
           nil
@@ -228,6 +247,7 @@ module CarrierWave
       add_config :ftp_passive
       add_config :ftp_tls
       add_config :ftp_chmod
+      add_config :ftp_auto_mkdir
 
       configure do |config|
         config.storage_engines[:ftp] = 'CarrierWave::Storage::FTP'
@@ -240,6 +260,7 @@ module CarrierWave
         config.ftp_passive = false
         config.ftp_tls = false
         config.ftp_chmod = true
+        config.ftp_auto_mkdir = false
       end
     end
   end
