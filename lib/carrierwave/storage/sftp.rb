@@ -5,18 +5,22 @@ module CarrierWave
   module Storage
     class SFTP < Abstract
       def store!(file)
+        p "store! #{file.identifier}"
         ftp_file(uploader.store_path).tap { |f| f.store(file) }
       end
 
       def retrieve!(identifier)
+        p "retrieve! #{identifier}"
         ftp_file(uploader.store_path(identifier))
       end
 
       def cache!(file)
+        p "cache! #{file.identifier}"
         ftp_file(uploader.cache_path).tap { |f| f.store(file) }
       end
 
       def retrieve_from_cache!(identifier)
+        p "retrieve_from_cache! #{identifier}"
         ftp_file(uploader.cache_path(identifier))
       end
 
@@ -51,14 +55,16 @@ module CarrierWave
         end
 
         def to_file
-          temp_file = Tempfile.new(filename)
-          temp_file.binmode
-          connection do |sftp|
-            sftp.download!(full_path, temp_file)
-          end
-          temp_file.open
-          temp_file.rewind
-          temp_file
+          # temp_file = Tempfile.new(filename)
+          # temp_file.binmode
+          # connection do |sftp|
+          #  sftp.download!(full_path, temp_file)
+          # end
+          # temp_file.open
+          # temp_file.rewind
+          # temp_file
+          uri = URI(url)
+          Net::HTTP.get(uri)
         end
 
         def size
