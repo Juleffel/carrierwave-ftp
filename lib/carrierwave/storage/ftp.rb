@@ -135,6 +135,7 @@ module CarrierWave
         end
 
         def to_file
+          p "/!!!\ to_file #{filename} /!!!\"
           temp_file = Tempfile.new(filename)
           temp_file.binmode
           connection do |ftp|
