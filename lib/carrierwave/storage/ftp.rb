@@ -96,7 +96,8 @@ module CarrierWave
         end
 
         def ftp_path
-          path if @uploader.ftp_folder.blank?
+          return path if @uploader.ftp_folder.blank?
+
           "#{@uploader.ftp_folder}/#{path}"
         end
 
