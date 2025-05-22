@@ -107,8 +107,11 @@ module CarrierWave
 
         def store(file)
           connection do |ftp|
+            p "ftp.mkdir_p(#{ftp_dirname})"
             ftp.mkdir_p(ftp_dirname)
+            p "ftp.chdir(#{ftp_dirname})"
             ftp.chdir(ftp_dirname)
+            p "ftp.put(#{file.path}, #{filename})"
             ftp.put(file.path, filename)
             chmod(ftp) if @uploader.ftp_chmod
           end
