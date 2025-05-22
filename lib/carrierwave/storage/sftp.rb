@@ -12,6 +12,14 @@ module CarrierWave
         ftp_file(uploader.store_path(identifier))
       end
 
+      def cache!(file)
+        ftp_file(uploader.cache_path).tap { |f| f.store(file) }
+      end
+
+      def retrieve_from_cache!(identifier)
+        ftp_file(uploader.cache_path(identifier))
+      end
+
       private
 
       def ftp_file(path)
