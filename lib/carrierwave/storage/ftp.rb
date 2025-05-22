@@ -101,10 +101,14 @@ module CarrierWave
           "#{@uploader.ftp_folder}/#{path}"
         end
 
+        def ftp_dirname
+          ::File.dirname(ftp_path)
+        end
+
         def store(file)
           connection do |ftp|
-            ftp.mkdir_p(::File.dirname(ftp_path))
-            ftp.chdir(::File.dirname(ftp_path))
+            ftp.mkdir_p(ftp_dirname)
+            ftp.chdir(ftp_dirname)
             ftp.put(file.path, filename)
             chmod(ftp) if @uploader.ftp_chmod
           end
@@ -112,8 +116,7 @@ module CarrierWave
 
         def chmod(ftp)
           ftp.sendcmd(
-            "SITE CHMOD #{@uploader.permissions.to_s(8)} " \
-            ftp_path
+            "SITE CHMOD #{@uploader.permissions.to_s(8)} #{ftp_path}"
           )
         end
 
@@ -129,7 +132,7 @@ module CarrierWave
           temp_file = Tempfile.new(filename)
           temp_file.binmode
           connection do |ftp|
-            ftp.chdir(::File.dirname(ftp_path))
+            ftp.chdir(ftp_dirname)
             ftp.get(filename, nil) do |data|
               temp_file.write(data)
             end
@@ -142,7 +145,7 @@ module CarrierWave
           size = nil
 
           connection do |ftp|
-            ftp.chdir(::File.dirname(ftp_path))
+            ftp.chdir(ftp_dirname)
             size = ftp.size(filename)
           end
 
@@ -168,7 +171,7 @@ module CarrierWave
 
         def delete
           connection do |ftp|
-            ftp.chdir(::File.dirname(ftp_path))
+            ftp.chdir(ftp_dirname)
             ftp.delete(filename)
           end
         rescue StandardError
