@@ -5,6 +5,7 @@ module CarrierWave
   module Storage
     class SFTP < Abstract
       def store!(file)
+        p "store! #{file.identifier}"
         ftp_file(uploader.store_path).tap { |f| f.store(file) }
       end
 
@@ -95,9 +96,18 @@ module CarrierWave
         end
 
         def store(file)
+          
           connection do |sftp|
+            p "full_path #{full_path}"
+            p "::File.dirname(full_path) #{::File.dirname(full_path)}"
+            p "file.path #{file.path}"
+            p "@uploader.sftp_host #{@uploader.sftp_host}"
+            p "@uploader.sftp_user #{@uploader.sftp_user}"
+            p "@uploader.sftp_options #{@uploader.sftp_options}"
             sftp.mkdir_p!(::File.dirname(full_path))
+            p "mkdir ok"
             sftp.upload!(file.path, full_path)
+            p "upload! ok"
           end
         end
 
